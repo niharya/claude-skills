@@ -42,6 +42,23 @@ When you present work, leave room for the designer to react. When they give
 feedback, engage with it — ask follow-ups if something is interesting, suggest
 alternatives if you have a better idea. The back-and-forth IS the process.
 
+ONE AT A TIME:
+Build one component, show it, get a reaction, adjust, then move to the next.
+Do not build multiple components before checking in with the designer. This is
+the single most important pacing rule. Batching components means batching
+rework. Showing each piece as it's made catches issues early.
+
+SEQUENTIAL SETUP:
+Station 1 setup tasks must run one at a time, in order. Do not run Figma API
+calls in parallel — on slower connections this causes timeouts and failures.
+Announce progress as you go: "(1/8) Checking Figma connection..." so the
+designer sees movement and doesn't stare at silence.
+
+FONT RULE:
+Never silently substitute or use a temporary/fallback font. If a font from the
+design isn't available, suggest 2–3 alternatives and let the designer pick. No
+component building happens until fonts are confirmed.
+
 FORMATTING PRINCIPLE:
 Keep text formatting minimal but effective. Use dividers and clear language.
 Choose the best graphic method for each piece of information — tables, dividers,
@@ -142,7 +159,7 @@ The very first thing you do is explain what's about to happen. Before any questi
 >
 > Let's get started."
 
-At this point, silently start the preview server in the background. Don't explain what you're doing technically — just get it running. If a port is already occupied, ask briefly: "Looks like something's already running on that port — want me to use a different one, or take it over?" That's the only server-related question the designer should ever see.
+Then wait for the designer's answers before doing anything else. Do NOT start the preview server, fetch Figma data, or set up files during this conversation. Collect the answers first.
 
 ---
 
@@ -150,15 +167,13 @@ At this point, silently start the preview server in the background. Don't explai
 
 **Goal:** Collect everything needed before building starts. No code, no component work, no layout thinking. This station handles logistics and nothing else.
 
----
+Station 1 has two phases: **Ask** (get info from the designer) and **Setup** (do the technical work). The Ask phase is a conversation. The Setup phase is a sequential checklist you work through one item at a time, announcing progress as you go: "(1/8) Checking Figma connection..." — so the designer knows things are moving and isn't staring at silence.
 
-### 1.1 — Verify Figma MCP connection
-
-Check if tools like `get_design_context` are available. If not, guide the user to enable the Figma MCP server. Keep it simple: "I need access to your Figma file through the MCP connection — could you check that it's enabled?"
+**Critical: do not run setup tasks in parallel.** Complete each step before starting the next. On slower connections, parallel Figma API calls cause timeouts and failures. One thing at a time.
 
 ---
 
-### 1.2 — Collect the essentials
+### Ask phase — collect the essentials
 
 Present these questions together — the designer doesn't need to be walked through them one at a time:
 
@@ -170,10 +185,20 @@ Present these questions together — the designer doesn't need to be walked thro
 
 4. **Frontend system** — "Any preference on how the code is written — Tailwind, a CSS framework, something else? If not, I'll use clean vanilla HTML and CSS."
 
+Wait for the designer to respond. Once you have the answers, move to the Setup phase.
+
 ---
 
-### 1.3 — Parse Figma URLs and fetch initial structure
+### Setup phase — sequential checklist
 
+Once you have the designer's answers, work through this checklist **one step at a time, in order**. Announce each step with a progress indicator so the designer can see movement:
+
+**"Setting things up — I'll walk through this step by step."**
+
+**(1/8) Verifying Figma MCP connection**
+Check if tools like `get_design_context` are available. If not, guide the user to enable the Figma MCP server. Keep it simple: "I need access to your Figma file through the MCP connection — could you check that it's enabled?"
+
+**(2/8) Parsing Figma URLs and fetching structure**
 URL format: `https://figma.com/design/:fileKey/:fileName?node-id=1-2`
 Branch format: `https://figma.com/design/:fileKey/branch/:branchKey/:fileName` — use `:branchKey` as file key.
 
@@ -186,33 +211,26 @@ get_metadata(fileKey=":fileKey", nodeId=":pageNodeId")
 
 Identify which frames are component sheets and which are layouts. If unclear, ask the designer — don't guess.
 
----
-
-### 1.4 — Check for design tokens and naming
-
+**(3/8) Checking for design tokens**
 ```
 get_variable_defs(fileKey=":fileKey", nodeId=":nodeId")
 ```
 
 If tokens exist, adopt them. If not, ask: "Do you follow a specific naming system — Tailwind, Material, your own? If not, I'll propose one based on what I see in your file."
 
----
-
-### 1.5 — Identify and load fonts
-
+**(4/8) Identifying fonts**
 Examine the Figma file for font families used across components and layouts. Custom fonts (Google Fonts, Adobe Fonts, brand typefaces) are one of the top reasons a build looks "off" despite correct spacing and colors.
 
 1. Extract font family names from the design context or metadata
-2. For Google Fonts: add the appropriate `<link>` or `@import`
-3. For licensed/custom fonts: ask the designer to provide the font files
-4. For system fonts: note them and move on
+2. Present the full list to the designer and ask them to confirm availability:
+   - For Google Fonts: confirm with the designer, then add the appropriate `<link>` or `@import`
+   - For licensed/custom fonts: ask the designer to provide the font files
+   - For system fonts: note them and move on
+3. **If a font is not available or the designer can't provide it:** suggest 2–3 visually similar alternatives and let the designer pick. Do NOT silently substitute a temporary or fallback font. No component building happens with placeholder fonts — the designer must confirm the font choice first.
 
-Do this now. If fonts aren't loaded before components are built, every visual review will be inaccurate and the designer will flag things that aren't actually wrong.
+If fonts aren't confirmed before components are built, every visual review will be inaccurate and the designer will flag things that aren't actually wrong.
 
----
-
-### 1.6 — Establish file structure
-
+**(5/8) Setting up file structure**
 For new projects (no existing codebase), propose a folder structure and get a quick confirmation:
 
 > "I'll organize the project like this:
@@ -225,31 +243,28 @@ For new projects (no existing codebase), propose a folder structure and get a qu
 
 For existing projects, follow whatever conventions are already in place. The point is: decide this once now, not ad-hoc during building.
 
----
-
-### 1.7 — Check for existing code mappings
-
+**(6/8) Checking for existing code mappings**
 ```
 get_code_connect_map(fileKey=":fileKey", nodeId=":nodeId")
 ```
 
 If any Figma components already have code counterparts, note them. These will be extended or wrapped, not rebuilt.
 
----
+**(7/8) Saving screenshots from Figma**
+This is critical. Figma MCP previews expire mid-session, and when they do, you lose your visual reference entirely.
 
-### 1.8 — Screenshot everything from Figma and store locally
-
-This is critical and must happen now. Figma MCP previews expire mid-session, and when they do, you lose your visual reference entirely.
-
-For every frame the designer shared — components and layouts — immediately:
+For every frame the designer shared — components and layouts — one at a time:
 1. Fetch a screenshot: `get_screenshot(fileKey=":fileKey", nodeId=":nodeId")`
 2. Save a local JPG copy in the project directory
 
 These are stored internally as fallback data. They are not displayed to the designer. Do not skip this step.
 
+**(8/8) Starting the preview server**
+Now — and only now — start the preview server. Don't explain what you're doing technically — just get it running. If a port is already occupied, ask briefly: "Looks like something's already running on that port — want me to use a different one, or take it over?" That's the only server-related question the designer should ever see.
+
 ---
 
-### 1.9 — Confirm and move forward
+### Confirm and move forward
 
 Present a brief summary:
 
@@ -257,7 +272,7 @@ Present a brief summary:
 > - Component frames: [list with names]
 > - Layout frames: [list with names]
 > - Design system: [what they shared, or 'none — working from the file']
-> - Fonts: [loaded / pending from designer]
+> - Fonts: [confirmed / pending from designer]
 > - Viewport: [confirmed target]
 > - Code style: [vanilla / Tailwind / etc.]
 > - File structure: [confirmed layout]
@@ -389,9 +404,11 @@ Without this, you will make incorrect contrast optimizations — for example, da
 
 ---
 
-### 2.6 — Build components
+### 2.6 — Build components, one at a time
 
-You can decide the build order — small wins first, dependency chains respected, whatever feels right for the session. Don't follow a rigid sequence. Build a component, show it, get a reaction, adjust, move to the next.
+Build **one component**, show it to the designer, get their reaction, adjust if needed, then move to the next. Do not build multiple components before checking in. The designer should see each piece as it's made — this catches issues early and avoids rework later.
+
+You can decide the build order — small wins first, dependency chains respected, whatever feels right for the session.
 
 For each component:
 
@@ -402,7 +419,7 @@ For each component:
 5. **Follow the confirmed code style.** Vanilla by default. Whatever was agreed in Station 1.
 6. **Bake in subtle transitions.** Gentle hover shifts, opacity fades — understated baseline polish.
 
-As each component is built, place it on the preview sheet in its correct section. The preview grows incrementally. Check in with the designer as you go — don't wait until everything is done.
+After building each component, place it on the preview sheet and let the designer know: "Just added [Component Name] to the sheet — take a look and let me know if it's on track before I move to the next one." The preview grows incrementally, one piece at a time.
 
 ---
 
@@ -730,7 +747,8 @@ If components are approved, do the quick stacking/states check and move to layou
 | Lost momentum after iterations | Forgot to progress to next station | Breadcrumb rule: every message states current station and next step |
 | Assets not loading | MCP endpoint inaccessible | Verify endpoint; use `localhost` URLs without modification |
 | Designer wants animation during build | Animation mid-build slows everything | Defer to Animation Pass; quick tweaks are fine inline |
-| Everything looks "off" despite correct spacing | Fonts not loaded | Identify and load fonts in Station 1 (step 1.5) before any building |
+| Everything looks "off" despite correct spacing | Fonts not loaded or wrong font substituted | Never use fallback fonts — confirm with designer, suggest alternatives if unavailable |
+| Setup phase hangs or times out | Parallel Figma API calls on slow connection | Run setup steps sequentially, one at a time — never in parallel |
 | Z-index conflicts in layout | No stacking order confirmed | Reference the stacking order from step 2.10 |
 | Designer edited original Figma frame in-place | No version control, unclear what changed | Ask designer to create updates in new frames and link them |
 | Lost track of station/step during iteration | No persistent context anchor | Breadcrumb rule: every message states current station and next step |
