@@ -1,0 +1,21 @@
+{
+  "name": "roll-lint",
+  "version": "1.0.0",
+  "description": "Systems-design-aware CSS/SCSS auditor. Cleans stylesheets through seven dependency-ordered phases — spacing, radius, type, layout, accessibility, naming — and returns a blueprint of the patterns that survived the cleanup.",
+  "author": {
+    "name": "Nihar Bhagat",
+    "email": "utilities@niharbhagat.com"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/niharya/claude-skills",
+  "keywords": [
+    "css",
+    "scss",
+    "linter",
+    "design-system",
+    "audit",
+    "frontend",
+    "design-tokens",
+    "stylesheets"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "skill-shelf",
+  "owner": {
+    "name": "Nihar Bhagat",
+    "email": "utilities@niharbhagat.com",
+    "url": "https://github.com/niharya"
+  },
+  "metadata": {
+    "description": "The skill shelf of Nihar Bhagat — a personal collection of Claude skills built for designers, frontend developers, and people applying to design, product, and frontend roles. MIT-licensed.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "lay-ui",
+      "source": "./lay-ui",
+      "description": "Translates Figma designs into production-ready code using a three-station component-first workflow. Requires the Figma MCP server.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Nihar Bhagat",
+        "email": "utilities@niharbhagat.com"
+      },
+      "license": "MIT",
+      "category": "design",
+      "keywords": [
+        "figma",
+        "ui",
+        "design",
+        "frontend",
+        "code-generation",
+        "design-to-code",
+        "components"
+      ]
+    },
+    {
+      "name": "roll-lint",
+      "source": "./roll-lint",
+      "description": "Systems-design-aware CSS/SCSS auditor. Cleans stylesheets through seven dependency-ordered phases and returns a blueprint of the surviving patterns.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Nihar Bhagat",
+        "email": "utilities@niharbhagat.com"
+      },
+      "license": "MIT",
+      "category": "frontend",
+      "keywords": [
+        "css",
+        "scss",
+        "linter",
+        "design-system",
+        "audit",
+        "frontend",
+        "design-tokens",
+        "stylesheets"
+      ]
+    },
+    {
+      "name": "run-candidacy",
+      "source": "./run-candidacy",
+      "description": "One job at a time. Tailored resume, application answers, and outreach contacts — generated from your own facts, written in your own voice.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Nihar Bhagat",
+        "email": "utilities@niharbhagat.com"
+      },
+      "license": "MIT",
+      "category": "career",
+      "keywords": [
+        "resume",
+        "job-application",
+        "cover-letter",
+        "career",
+        "candidacy",
+        "tailoring",
+        "outreach"
+      ]
+    }
+  ]
+}

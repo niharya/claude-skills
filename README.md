@@ -18,23 +18,38 @@ These skills are built around real design and frontend work. They've been used i
 
 ---
 
-## How Claude Skills Work
+## Quick install via plugin marketplace
 
-Skills live in your Claude environment as `.md` files. When Claude loads them, it follows the instructions inside to run a structured, multi-step process — rather than responding ad-hoc.
+This repo is also published as a Claude Code plugin marketplace called **`skill-shelf`**. If you're on Claude Code, you can install any of the skills with two slash commands:
+
+```
+/plugin marketplace add niharya/claude-skills
+/plugin install lay-ui@skill-shelf
+/plugin install roll-lint@skill-shelf
+/plugin install run-candidacy@skill-shelf
+```
+
+Add the marketplace once. Install only the plugins you want. Each plugin pulls its `SKILL.md` plus all supporting files (templates, prompts, scripts, examples) into your Claude Code environment automatically.
+
+> **Note:** `lay-ui` additionally requires the **Figma MCP server** to be connected. See the [lay-ui README](./lay-ui/README.md).
+>
+> **Note:** `run-candidacy` requires a first-run setup pass — two paste-prompts you run in the AI you talk to most. See the [run-candidacy README](./run-candidacy/README.md) for the flow.
+
+---
+
+## Manual install (fallback)
+
+If you're not on Claude Code, or you prefer to install skills by hand, every `SKILL.md` is still available directly:
 
 ### Setup (claude.ai)
 
 1. Open [claude.ai](https://claude.ai) and go to **Settings → Skills** (or your connected environment's skill directory)
-2. Copy the `SKILL.md` file for the skill you want to use into your skills folder
+2. Copy the `SKILL.md` file for the skill you want into your skills folder. After the plugin restructure, each `SKILL.md` lives at `<plugin>/skills/<plugin>/SKILL.md` — e.g. [`lay-ui/skills/lay-ui/SKILL.md`](./lay-ui/skills/lay-ui/SKILL.md).
 3. Start a new conversation and trigger the skill using the phrases listed in each skill's README
 
-### Setup (Claude Code / API)
+### Setup (Claude Code / API, without the marketplace)
 
-If you're using Claude via the API or Claude Code, place the skill folder (`SKILL.md` plus any supporting files) into your skill directory as per your setup.
-
-> **Note:** `lay-ui` requires the **Figma MCP server** to be connected. See the [lay-ui README](./lay-ui/README.md) for setup details.
->
-> **Note:** `run-candidacy` requires a first-run setup pass — two paste-prompts you run in the AI you talk to most. See the [run-candidacy README](./run-candidacy/README.md) for the flow.
+Place the relevant `skills/<plugin>/` folder (which contains `SKILL.md` plus any supporting files) into your skill directory as per your setup.
 
 ---
 

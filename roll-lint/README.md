@@ -33,9 +33,20 @@ After the ironing, you get a **blueprint**: the spacing scale, radius set, type 
 
 ## Installation
 
-1. Copy [`SKILL.md`](./SKILL.md) into your Claude skills directory
+### Quick install (Claude Code, via marketplace)
+
+```
+/plugin marketplace add niharya/claude-skills
+/plugin install roll-lint@skill-shelf
+```
+
+Then start a new conversation and share your CSS/SCSS files.
+
+### Manual install (fallback)
+
+1. Copy [`skills/roll-lint/SKILL.md`](./skills/roll-lint/SKILL.md) into your Claude skills directory
    - On claude.ai: Settings → Skills → add new skill
-   - On Claude Code: place in `/mnt/skills/user/roll-lint/SKILL.md`
+   - On Claude Code (without the marketplace): place in `~/.claude/skills/roll-lint/SKILL.md`
 2. Start a new conversation and share your CSS/SCSS files
 
 ---
@@ -111,7 +122,7 @@ These are the next floors. `roll-lint` gives you a correct foundation to build t
 
 ## Examples
 
-See the [`examples/`](./examples/) folder for sample audit reports and before/after diffs.
+See the [`skills/roll-lint/examples/`](./skills/roll-lint/examples/) folder for sample audit reports and before/after diffs.
 
 ---
 

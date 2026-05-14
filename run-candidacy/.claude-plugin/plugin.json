@@ -1,0 +1,20 @@
+{
+  "name": "run-candidacy",
+  "version": "1.0.0",
+  "description": "One job at a time. Tailored resume, application answers, and outreach contacts — generated from your own facts, written in your own voice. Built for anyone applying to design, product, or frontend roles.",
+  "author": {
+    "name": "Nihar Bhagat",
+    "email": "utilities@niharbhagat.com"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/niharya/claude-skills",
+  "keywords": [
+    "resume",
+    "job-application",
+    "cover-letter",
+    "career",
+    "candidacy",
+    "tailoring",
+    "outreach"
+  ]
+}

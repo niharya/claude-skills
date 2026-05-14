@@ -24,9 +24,9 @@ The skill never invents facts. If the JD asks for something your `facts/` don't 
 
 The skill ships with placeholder facts. Before your first real run, populate `facts/` by running two prompts in the AI you talk to most (the one that knows your writing and history).
 
-1. Open [`prompts/01-facts-extraction.md`](./prompts/01-facts-extraction.md). Copy everything below the `===` line. Paste it into your home AI. Paste the AI's response back into Claude with `run-candidacy` active — it will write your identity, roles, receipts, logistics, and approved phrasings into `facts/`.
+1. Open [`skills/run-candidacy/prompts/01-facts-extraction.md`](./skills/run-candidacy/prompts/01-facts-extraction.md). Copy everything below the `===` line. Paste it into your home AI. Paste the AI's response back into Claude with `run-candidacy` active — it will write your identity, roles, receipts, logistics, and approved phrasings into `facts/`.
 
-2. Open [`prompts/02-voice-extraction.md`](./prompts/02-voice-extraction.md). Same flow — paste, run, paste back. This fills your voice rules, lexicon, and three real voice samples.
+2. Open [`skills/run-candidacy/prompts/02-voice-extraction.md`](./skills/run-candidacy/prompts/02-voice-extraction.md). Same flow — paste, run, paste back. This fills your voice rules, lexicon, and three real voice samples.
 
 3. Answer four short workflow questions in Claude (output folder, PDF default, app-log on/off, spelling system). The skill stores them in `.skill-config.json`.
 
@@ -52,9 +52,20 @@ WeasyPrint additionally needs system libraries (Pango, Cairo). See its [install 
 
 ## Installation
 
-1. Copy this folder (`run-candidacy/`) into your Claude skills directory.
+### Quick install (Claude Code, via marketplace)
+
+```
+/plugin marketplace add niharya/claude-skills
+/plugin install run-candidacy@skill-shelf
+```
+
+Then open a new conversation, run the first-run setup above, and paste a JD or say "run candidacy".
+
+### Manual install (fallback)
+
+1. Copy the [`skills/run-candidacy/`](./skills/run-candidacy/) folder (which contains `SKILL.md` plus `prompts/`, `facts/`, `templates/`, `scripts/`, and `examples/`) into your Claude skills directory.
    - On claude.ai: Settings → Skills → add new skill, point at `SKILL.md`
-   - On Claude Code: place at `~/.claude/skills/run-candidacy/` (or your project's skill path)
+   - On Claude Code (without the marketplace): place at `~/.claude/skills/run-candidacy/` (or your project's skill path)
 2. Open a new conversation. Run setup (above).
 3. Paste a JD or say "run candidacy".
 
@@ -111,13 +122,17 @@ If you want a different look, edit `templates/resume.html` directly. The Jinja d
 
 ```
 run-candidacy/
-├── SKILL.md                  the instructions Claude follows
-├── README.md                 this file
-├── prompts/                  paste-prompts for first-run setup
-├── facts/                    your single source of truth
-├── templates/                default resume template
-├── scripts/                  build + voice scan + application log
-└── examples/                 one folder per application
+├── README.md                 this file (kept at plugin root for GitHub display)
+├── .claude-plugin/
+│   └── plugin.json           plugin manifest (marketplace install)
+└── skills/
+    └── run-candidacy/
+        ├── SKILL.md          the instructions Claude follows
+        ├── prompts/          paste-prompts for first-run setup
+        ├── facts/            your single source of truth
+        ├── templates/        default resume template
+        ├── scripts/          build + voice scan + application log
+        └── examples/         one folder per application
 ```
 
 ---

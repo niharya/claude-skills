@@ -1,0 +1,20 @@
+{
+  "name": "lay-ui",
+  "version": "1.0.0",
+  "description": "Translates Figma designs into production-ready code using a three-station component-first workflow. Built for product designers and UI/UX designers. Requires the Figma MCP server.",
+  "author": {
+    "name": "Nihar Bhagat",
+    "email": "utilities@niharbhagat.com"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/niharya/claude-skills",
+  "keywords": [
+    "figma",
+    "ui",
+    "design",
+    "frontend",
+    "code-generation",
+    "design-to-code",
+    "components"
+  ]
+}

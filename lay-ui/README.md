@@ -33,9 +33,20 @@ At each station, you're only ever thinking about one kind of problem. No context
 
 ## Installation
 
-1. Copy [`SKILL.md`](./SKILL.md) into your Claude skills directory
+### Quick install (Claude Code, via marketplace)
+
+```
+/plugin marketplace add niharya/claude-skills
+/plugin install lay-ui@skill-shelf
+```
+
+Then ensure your Figma MCP server is connected and authenticated, and start a new conversation.
+
+### Manual install (fallback)
+
+1. Copy [`skills/lay-ui/SKILL.md`](./skills/lay-ui/SKILL.md) into your Claude skills directory
    - On claude.ai: Settings → Skills → add new skill
-   - On Claude Code: place in `/mnt/skills/user/lay-ui/SKILL.md`
+   - On Claude Code (without the marketplace): place in `~/.claude/skills/lay-ui/SKILL.md`
 2. Ensure your Figma MCP server is connected and authenticated
 3. Start a new conversation
 
@@ -93,7 +104,7 @@ Throughout all three stations, Claude uses a **breadcrumb system** — every mes
 
 ## Examples
 
-See the [`examples/`](./examples/) folder for sample component sheets and layout outputs.
+See the [`skills/lay-ui/examples/`](./skills/lay-ui/examples/) folder for sample component sheets and layout outputs.
 
 ---
 
