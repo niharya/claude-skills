@@ -108,13 +108,13 @@ When you confirm the application has been submitted, the skill logs it to `appli
 
 ## Default template
 
-The default `templates/resume.html` follows the principles in Matthew Butterick's [résumé chapter from *Typography for Lawyers*](https://typographyforlawyers.com/resumes.html):
+The default template at [`skills/run-candidacy/templates/resume.html`](./skills/run-candidacy/templates/resume.html) follows the principles in Matthew Butterick's [résumé chapter from *Typography for Lawyers*](https://typographyforlawyers.com/resumes.html):
 
 - **Substance gets visual weight.** Employer / school names in serif (Georgia), slightly heavier. Section labels in quieter sans (Helvetica), small and lowercase. The reader scans for the names you've worked with first — give them the weight.
 - **Two pages are fine.** No one-page squeeze. Generous margins, breathable line length, gentle dot bullets.
 - **System fonts only.** Georgia + Helvetica/Arial. No web fonts to bundle, no rendering surprises across machines or PDF engines.
 
-If you want a different look, edit `templates/resume.html` directly. The Jinja data shape is documented in `SKILL.md`.
+If you want a different look, edit [`skills/run-candidacy/templates/resume.html`](./skills/run-candidacy/templates/resume.html) directly. The Jinja data shape is documented in [`skills/run-candidacy/SKILL.md`](./skills/run-candidacy/SKILL.md).
 
 ---
 
@@ -139,7 +139,15 @@ run-candidacy/
 
 ## Privacy
 
-`facts/` contains your identity, contact info, work history, and voice samples. It stays on your machine. The skill never uploads it anywhere. If you fork this skill into a public repo, make sure to gitignore `facts/`, `examples/`, and `applications.xlsx` first.
+The `facts/` folder (at [`skills/run-candidacy/facts/`](./skills/run-candidacy/facts/)) contains your identity, contact info, work history, and voice samples. It stays on your machine. The skill never uploads it anywhere. If you fork this repo to use the skill, gitignore these three before pushing anything public:
+
+```
+run-candidacy/skills/run-candidacy/facts/
+run-candidacy/skills/run-candidacy/examples/
+run-candidacy/skills/run-candidacy/applications.xlsx
+```
+
+(If you've copied the skill out to a standalone `~/.claude/skills/run-candidacy/` location, the gitignore-able paths are just `facts/`, `examples/`, and `applications.xlsx`.)
 
 ---
 
