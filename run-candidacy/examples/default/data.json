@@ -1,0 +1,50 @@
+{
+  "header": {
+    "name": "Alex Chen",
+    "location": "Remote · GMT-5",
+    "phone": "+1 415 555 0199",
+    "email": "alex@example.com",
+    "site": "https://alexchen.example.com",
+    "site_display": "alexchen.example.com"
+  },
+  "roles": [
+    {
+      "company": "Helio Systems",
+      "title": "Senior Product Designer · Developer Platform",
+      "dates": "Aug 2023 – present",
+      "bullets": [
+        "Design the CLI and dashboard for Helio's deployment platform. Worked alongside 2 PMs and 9 engineers shipping to ~40k weekly active developers.",
+        "Built and maintain the design system. 38 components in Figma, mirrored in a Tailwind library that engineering uses directly. Wrote the migration guide that took the team from inline styles to tokens in two weeks.",
+        "Run weekly user research sessions. Talked to 80+ developers in the last year. Findings shape the roadmap quarterly.",
+        "Wrote and designed the v2 docs site. Reduced time-to-first-deploy from 14 minutes to 5 minutes (measured by event)."
+      ]
+    },
+    {
+      "company": "Pendle.io",
+      "title": "Product Designer",
+      "dates": "Mar 2021 – Jul 2023",
+      "bullets": [
+        "First designer at Pendle, an analytics tool for indie SaaS founders. Built the product from a Figma prototype to a paying SaaS with 1,200+ customers.",
+        "Designed the dashboard, the onboarding, the billing surface, and the public marketing site. Wrote most of the in-product copy.",
+        "Set up the design system from scratch. Shipped a component library in Tailwind that the founder (engineering) could extend without me."
+      ]
+    },
+    {
+      "company": "Ridgeline Studio",
+      "title": "Product Designer",
+      "dates": "Jun 2018 – Feb 2021",
+      "bullets": [
+        "Designed across 6 client projects spanning fintech, B2B SaaS, and e-commerce. Led design on 3 of them as the only designer on the project.",
+        "Shipped the redesign of a real-time trading dashboard for a fintech client. Reduced support tickets about the chart UI by half in the first quarter post-launch.",
+        "Mentored two junior designers through the project lifecycle. Both are now mid-level at other companies."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "University of Toronto",
+      "degree": "B.Des. Communication Design",
+      "dates": "2014–18"
+    }
+  ]
+}

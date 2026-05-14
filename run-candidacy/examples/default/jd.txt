@@ -1,0 +1,27 @@
+Senior Product Designer — Northwind Cloud
+
+About the role
+
+We're hiring a Senior Product Designer to lead design for our developer tools surface — CLI, dashboard, and the integrations marketplace. You'll be the second designer on the team and will work closely with our PM, engineering leads, and DevRel.
+
+What you'll do
+
+- Own design for the developer-facing surface end-to-end: research, exploration, system, ship.
+- Partner with our PM to define the roadmap. Push back on scope when it's the right call.
+- Build out our design system in collaboration with our existing senior designer. We use Figma and Tailwind.
+- Lead user research sessions with developers. We talk to 4–6 customers a week.
+- Help our DevRel team produce clear, well-designed documentation and onboarding flows.
+
+What we're looking for
+
+- 5+ years of product design experience. At least 2 years on a developer-facing product.
+- Strong systems thinking. You can hold complexity in your head and ship simple interfaces.
+- Comfort writing your own copy. Our voice is direct, technical, no fluff.
+- Excellent written communication. We're a remote team that lives in long-form documents.
+- Some frontend literacy. You don't need to ship production code, but you should be able to read and modify a Tailwind component.
+
+What we offer
+
+- Remote-first, headquartered in Berlin. Two retreats a year.
+- Competitive salary, equity, generous PTO.
+- A small team that ships fast and pushes back on each other constructively.

@@ -1,0 +1,11 @@
+# nda-names.txt
+#
+# Names that must never appear in any generated output (resume, application,
+# cover letter, outreach). One name per line. Lines starting with # are
+# comments.
+#
+# The build script (scripts/build.py) checks generated text against this list
+# and blocks the build if any match is found.
+#
+# Add client names, internal codenames, or any string the candidate is bound
+# not to use publicly. Match is case-insensitive substring.

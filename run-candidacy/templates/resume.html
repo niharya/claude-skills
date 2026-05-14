@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ header.name }} — résumé</title>
+<style>
+  /* ─────────────────────────────────────────────────────────────────
+     Default résumé template for run-candidacy.
+
+     Typography follows Butterick's "Typography for Lawyers" résumé
+     principles. Substance (employer / school names, body bullets) gets
+     visual weight in a serif. Structure (name banner, section labels,
+     dates) sits in a quieter sans. Two pages are fine; generous
+     margins; gentle bullets.
+
+     System fonts — Georgia (serif) + Helvetica/Arial (sans). No web
+     fonts. Safe across operating systems and PDF rendering.
+     ───────────────────────────────────────────────────────────────── */
+
+  @page {
+    size: letter;
+    margin: 0.9in 1in;
+  }
+
+  :root {
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: Helvetica, Arial, sans-serif;
+
+    --ink: #1a1a1a;
+    --muted: #595959;
+    --rule: #cfcfcf;
+
+    --body-size: 10.5pt;
+    --body-leading: 1.45;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: var(--body-size);
+    line-height: var(--body-leading);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    max-width: 6.5in;
+    margin: 0 auto;
+    padding: 0.4in 0;
+  }
+
+  /* ── Header / name banner ─────────────────────────────────────── */
+
+  header {
+    margin-bottom: 1.6rem;
+  }
+
+  .name {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 14pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .contact {
+    font-family: var(--sans);
+    font-size: 8.5pt;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.5;
+  }
+
+  .contact a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .contact .sep {
+    display: inline-block;
+    width: 0.6em;
+    text-align: center;
+    color: var(--rule);
+  }
+
+  /* ── Optional headline paragraph ──────────────────────────────── */
+
+  .headline {
+    font-family: var(--serif);
+    font-size: var(--body-size);
+    line-height: 1.55;
+    margin: 0 0 1.4rem 0;
+    color: var(--ink);
+  }
+
+  /* ── Section heading (quiet, lowercase sans) ──────────────────── */
+
+  section {
+    margin-bottom: 1.3rem;
+  }
+
+  h2.section {
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 9pt;
+    text-transform: lowercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    border-bottom: 0.5pt solid var(--rule);
+    padding-bottom: 0.25rem;
+    margin: 0 0 0.7rem 0;
+  }
+
+  /* ── Role / entry block ───────────────────────────────────────── */
+
+  .entry {
+    margin-bottom: 0.9rem;
+  }
+
+  .entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.15rem;
+    gap: 1em;
+  }
+
+  .entry-name {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 11pt;
+    color: var(--ink);
+  }
+
+  .entry-dates {
+    font-family: var(--sans);
+    font-size: 8.5pt;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .entry-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 10pt;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+  }
+
+  /* ── Bullets ──────────────────────────────────────────────────── */
+
+  ul.bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0.2rem 0 0 0;
+  }
+
+  ul.bullets li {
+    position: relative;
+    padding-left: 1em;
+    margin-bottom: 0.15rem;
+    font-family: var(--serif);
+    font-size: var(--body-size);
+    line-height: var(--body-leading);
+  }
+
+  ul.bullets li::before {
+    content: "·";
+    position: absolute;
+    left: 0.25em;
+    top: -0.05em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  ul.bullets li.star {
+    font-weight: 600;
+  }
+
+  /* ── Bullet groups (optional grouping inside a role) ──────────── */
+
+  .group {
+    margin-top: 0.4rem;
+  }
+
+  .group-label {
+    font-family: var(--sans);
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.1rem;
+  }
+
+  /* ── Selected work / projects ─────────────────────────────────── */
+
+  .work-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .work-list li {
+    margin-bottom: 0.3rem;
+    font-family: var(--serif);
+  }
+
+  .work-name {
+    font-weight: 700;
+  }
+
+  .work-desc {
+    color: var(--ink);
+  }
+
+  /* ── Print / PDF ──────────────────────────────────────────────── */
+
+  .page-break {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  @media print {
+    body { padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="name">{{ header.name }}</h1>
+  <div class="contact">
+    {%- set parts = [] -%}
+    {%- if header.location %}{% set _ = parts.append(header.location) %}{% endif -%}
+    {%- if header.phone %}{% set _ = parts.append(header.phone) %}{% endif -%}
+    {%- if header.email %}{% set _ = parts.append('<a href="mailto:' ~ header.email ~ '">' ~ header.email ~ '</a>') %}{% endif -%}
+    {%- if header.site %}{% set _ = parts.append('<a href="' ~ header.site ~ '">' ~ (header.site_display or header.site) ~ '</a>') %}{% endif -%}
+    {%- for p in parts -%}
+      {{ p | safe }}{% if not loop.last %}<span class="sep">·</span>{% endif %}
+    {%- endfor -%}
+  </div>
+</header>
+
+{% if headline %}
+<p class="headline">{{ headline }}</p>
+{% endif %}
+
+{% if roles %}
+<section>
+  <h2 class="section">experience</h2>
+  {% for role in roles %}
+  <div class="entry">
+    <div class="entry-head">
+      <span class="entry-name">{{ role.company }}</span>
+      <span class="entry-dates">{{ role.dates }}</span>
+    </div>
+    {% if role.title %}<div class="entry-title">{{ role.title }}</div>{% endif %}
+
+    {% if role.bullets %}
+    <ul class="bullets">
+      {% for b in role.bullets %}
+        {% if b is mapping %}
+          <li class="{% if b.star %}star{% endif %}">{{ b.text }}</li>
+        {% else %}
+          <li>{{ b }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if role.bullet_groups %}
+      {% for g in role.bullet_groups %}
+      <div class="group">
+        {% if g.label %}<div class="group-label">{{ g.label }}</div>{% endif %}
+        <ul class="bullets">
+          {% for b in g.bullets or g.items or [] %}
+            {% if b is mapping %}
+              <li class="{% if b.star %}star{% endif %}">{{ b.text }}</li>
+            {% else %}
+              <li>{{ b }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+  {% if role.page_break_after %}<div class="page-break"></div>{% endif %}
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if selected_work %}
+<section>
+  <h2 class="section">selected work</h2>
+  <ul class="work-list">
+    {% for w in selected_work %}
+    <li><span class="work-name">{{ w.name }}.</span> <span class="work-desc">{{ w.description }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if education %}
+<section>
+  <h2 class="section">education</h2>
+  {% for ed in education %}
+  <div class="entry">
+    <div class="entry-head">
+      <span class="entry-name">{{ ed.school }}</span>
+      <span class="entry-dates">{{ ed.dates }}</span>
+    </div>
+    {% if ed.degree %}<div class="entry-title">{{ ed.degree }}</div>{% endif %}
+    {% if ed.notes %}
+    <ul class="bullets">
+      {% for n in ed.notes %}<li>{{ n }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+</body>
+</html>
