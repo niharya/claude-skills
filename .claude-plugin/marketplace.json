@@ -34,8 +34,8 @@
     {
       "name": "roll-lint",
       "source": "./roll-lint",
-      "description": "Systems-design-aware CSS/SCSS auditor. Cleans stylesheets through seven dependency-ordered phases and returns a blueprint of the surviving patterns.",
-      "version": "1.0.0",
+      "description": "Systems-design-aware CSS/SCSS auditor. Cleans stylesheets through seven dependency-ordered phases, returns a blueprint of the surviving patterns, and keeps guarding them with baseline-driven touch-up mode and an edit hook.",
+      "version": "2.0.0",
       "author": {
         "name": "Nihar Bhagat",
         "email": "utilities@niharbhagat.com"

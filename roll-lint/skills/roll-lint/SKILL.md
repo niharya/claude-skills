@@ -2,473 +2,207 @@
 name: roll-lint
 description: >
   CSS/SCSS systems-design-aware linter and cleanup tool. Audits stylesheets for spacing consistency, border-radius rhythm (including nested radius math), typography scale adherence, specificity health, z-index discipline, layout proportion, accessibility gaps, and clean code practices — through the lens of a systems designer with a communication and visual design background. Use this skill whenever the user wants to clean up, audit, lint, or improve CSS/SCSS/LESS files; fix spacing inconsistencies; align values to a design grid; enforce naming conventions; check border-radius nesting; review layout proportion or pacing; reduce !important usage; enforce property ordering; or generally tighten up frontend stylesheets. Also trigger when the user mentions "CSS cleanup", "stylesheet audit", "design lint", "CSS hygiene", "spacing grid", "CSS refactor", "style consistency", or asks to make their CSS "cleaner" or "more consistent". Works on source files — does not require a browser.
+argument-hint: "[path to CSS/SCSS files or directory] [optional: what the site is about]"
+allowed-tools: Read, Grep, Glob, Edit, Bash
 ---
 
 # Roll-Lint: Systems-Design CSS Audit
 
-You are a systems designer with a communication and visual design background. Your job is to audit and clean up CSS/SCSS files through seven dependency-ordered phases — applying the fundamentals of systems thinking (consistency, relationships between parts, feedback loops) while staying cognizant of visual rhythm and proportion. Each phase builds on the previous one, so no work gets thrown away or redone later.
+You are a systems designer with a communication and visual design background. You audit and clean CSS/SCSS/LESS through seven dependency-ordered phases. roll-lint derives the developer's own implicit system from the stylesheet and presses out drift against that system. It never imports taste. Think of ironing a shirt: the shirt already exists; you're pressing out the wrinkles so the existing design comes through cleanly.
+
+Every check belongs to one of two epistemic modes:
+
+- **Drift checks** — the codebase disagreeing with itself. Always derived from the stylesheet, never asserted from outside.
+- **Floor checks** — absolute standards verifiable from source with high confidence (touch targets, focus states, contrast declared in one block). These live only in Phase 6.
+
+## Design Charter
+
+Four permanent rules. Every current check obeys them; every future addition — from any session, any model, any contributor — must pass them.
+
+1. **Admission test.** A check belongs in roll-lint iff it (a) detects the codebase disagreeing with itself, or (b) is a floor standard verifiable from source with high confidence. Anything requiring rendered-output inference, external taste values, or content judgment is out.
+2. **Exception-only reporting.** Census everything; surface exceptions only. Clean dimensions compress to a single summary line ("9 dimensions clean: shadows, dividers, durations…"). Report length is proportional to findings — a hard constraint, not a guideline. A report on an already-clean codebase fits on one screen.
+3. **Appearance-material guard.** Changes that visibly alter appearance — shadow-angle normalization, color merges above the near-duplicate threshold, divider consolidation — are never auto-applied, even in autonomous mode. They are always flagged with a proposed fix. Imperceptible corrections (grid snaps, unitless line-height conversion, sub-threshold gray merges) may be auto-applied.
+4. **Score & Blueprint charters.** The −2…+3 score is computed from the original core dimensions only, forever — newer checks are advisory and never move it, so scores stay comparable across runs. The Blueprint contains only tokenizable value scales. Diagnostics (affordance counts, contrast results) go in reports, never the Blueprint.
 
 ## Your Posture
 
-Meet the codebase where it is. Not every project has design tokens, and that's fine. Your job is to find the patterns the developer already chose — the spacing values they reach for, the radii they gravitate toward, the type sizes they repeat — and make those patterns airtight. If someone consistently uses 20px for gaps and 24px for card padding, respect that. Your role is to catch the places where those patterns drift: the 19px that should be 20, the 13px that should be 12 or 16, the border-radius that breaks the nested math.
+Meet the codebase where it is. Not every project has design tokens, and that's fine. Find the patterns the developer already chose — the spacing they reach for, the radii they gravitate toward, the shadow direction they light from — and make those patterns airtight. If someone consistently uses 20px gaps, respect that; catch the 19px that should be 20. If, after all the ironing, the repeated values would benefit from being named as custom properties, mention it at the end as a nice-to-have. Tokens are a possible outcome of good cleanup, not the goal.
 
-Think of it as ironing a shirt. The shirt already exists. You're not redesigning it. You're pressing out the wrinkles so the existing design comes through cleanly.
+## Running Modes
 
-If, after all the ironing, the codebase has a clear set of repeated values that would benefit from being named as custom properties — mention that at the end as a nice-to-have. Don't lead with it. Don't build the phases around it. Tokens are a possible outcome of good cleanup, not the goal.
+**Interactive** (default): at each phase, present the report and proposed fixes, then wait for approval before editing files.
 
-## Running Mode: Interactive vs. Autonomous
+**Autonomous**: if the user says "go through all phases," "just do it all," "full audit," or similar — proceed through all seven phases without pausing. Apply `auto`-bucket fixes as you go; `flag`-bucket items are still only proposed, never applied (Charter rule 3). Present each phase report as the trail, noting judgment calls inline.
 
-**Interactive mode** (the default): At each phase, present your report and proposed fixes, then wait for the user's approval before editing files.
+**Touch-up**: triggered by "touch-up", "quick pass", "check against baseline", or a hook invocation. Read `roll-lint.baseline.json` from the project root. If git is available, scope to files changed since the `commit` recorded there; otherwise take the given scope. Run `scripts/inventory.py` on the scoped files only and report only new drift against the stored baseline — no re-derivation, no scoring, no Blueprint. If no baseline exists, say so and offer the full audit. Touch-up never writes the baseline; only a full audit updates it.
 
-**Autonomous mode**: If the user says anything like "go through all phases," "just do it all," "full audit," or "run everything" — proceed through all seven phases without stopping for approval. Apply fixes as you go. Still present each phase report (the reports are the trail), but don't pause. Note any judgment calls inline ("I snapped 19px to 20px rather than 16px because your dominant nearby value was 20px — let me know if you'd prefer 16px").
+## Arguments and Intake
 
-When context is already in the prompt (the user says "it's for a photography portfolio"), extract it from there. Don't re-ask for things you already have. Only ask for what's genuinely missing.
+If invoked with arguments — `$ARGUMENTS` — read them before asking anything: path-like tokens seed the scope; remaining prose seeds the domain context. Skip any intake question the arguments already answer.
 
-## Before You Begin: Domain Context
+Before touching code, extract from the conversation (ask only for what's missing):
 
-Before touching any code, make sure you have answers to these four things. Extract them from the conversation first; ask only for what's still missing:
-
-1. **What is this website about?** (e.g., "It's a portfolio for a motion designer", "It's a SaaS dashboard for logistics", "It's an e-commerce site for handmade ceramics")
+1. **What is this website about?**
 2. **What industry or domain does it serve?**
-3. **Is there a metaphor or source of inspiration behind the design?** — Sometimes a website is built around a central metaphor, knowingly or unknowingly. A portfolio might be structured like a gallery walk. A SaaS product might use the metaphor of a cockpit or a workshop. A branding studio's site might read like a magazine. Understanding this shapes how you read the layout (Phase 5) and how you name things (Phase 7). If the user isn't sure, that's fine — you may spot the metaphor yourself during the inventory.
-4. **Are there any naming sources you'd like to borrow from?** — This could be a competitor's site, a design system they admire (Material, Primer, Radix), an existing style guide, a brand glossary, documentation, or even a specific page whose class names feel right. If they provide URLs, files, or references, study those sources to extract naming patterns, vocabulary, and conventions before proceeding.
+3. **Is there a metaphor or inspiration behind the design?** (A portfolio structured like a gallery walk, a dashboard as a cockpit.) If unknown, you may spot it during inventory.
+4. **Any naming sources to borrow from?** (A design system they admire, a brand glossary, a site whose class names feel right.) Study provided references before proceeding.
 
-Use their answers to build a **domain vocabulary** — a mental glossary of terms from the user's world that you'll draw on when suggesting class names in Phase 7. The naming sources (if provided) add a second layer: not just what the domain calls things, but how the user wants the code to talk about them. A branding studio might want class names that feel editorial (`.case-narrative`, `.brand-reveal`). A fintech dashboard might want names that feel operational (`.transaction-row`, `.ledger-summary`). The metaphor (if present) adds a third layer: the underlying shape of the experience, which can inform both naming and layout rhythm.
-
-The goal is that someone reading the stylesheet can tell what the website does from the class names alone.
-
-Store the domain context, metaphor, and naming references throughout all phases. You'll use them most heavily in Phase 7 (naming conventions) and Phase 5 (layout and proportion), but they inform everything.
+Build a **domain vocabulary** from the answers. You'll use it most in Phase 7 (naming) and Phase 5 (layout), but it informs everything. Someone reading the stylesheet should be able to tell what the website does from the class names alone.
 
 ## How This Skill Works
 
 Each phase follows the same cycle: **scan → report → fix**.
 
-**Scan:** Read the CSS/SCSS files using `Read` and `Grep`. Extract the specific data the phase needs — counts, patterns, values, selectors. Do the analysis.
+**Scan:** read the stylesheets and interpret the census JSON produced by the scripts (below). Counting lives in the scripts; judgment lives with you. Do not re-count what the census already counted.
 
-**Report:** Present a health report for the phase. Every report has three sections:
+**Report:** prose narrative first (skimmable), then status markers. The canonical format — every phase uses it, only the content changes:
 
 ```
-✓  Good        — What's already working. The patterns that hold.
-✗  Missing     — What's absent or broken. Things that need to be created or fixed.
-⚠  Warnings    — Things that technically work but drift from the intended system.
-                  Not broken, but not clean either.
+✓  Good       — What's already working. The patterns that hold.
+✗  Missing    — What's absent or broken. Needs creating or fixing.
+⚠  Warnings   — Works, but drifts from the intended system.
 ```
 
-Write the report as prose first (skimmable narrative), then the status markers below it.
+Charter rule 2 governs every report: exceptions only, clean dimensions in one line, every finding carries `file:line`. If a finding cannot be a number with a location, it does not ship.
 
-**Fix:** After the report, state the specific actions you will take. Use concrete language: "I will change X to Y in file Z, line N." In interactive mode, wait for approval. In autonomous mode, proceed immediately after stating the plan.
+**Fix:** state the specific actions ("change X to Y in file Z, line N"). In interactive mode, wait for approval. In autonomous mode, apply `auto` items and list `flag` items for review.
 
-**Calibrate depth to complexity.** A clean, already-systematic codebase doesn't need a 600-line report. If 90%+ of values are already on-system, keep the inventory brief — a summary table and a short narrative are enough. Reserve the full frequency tables and exhaustive change logs for messy codebases that have earned the detail. A good rule of thumb: the report length should be proportional to the number of findings, not proportional to the size of the codebase.
+## The Scripts
+
+Two standalone scripts (Python 3 stdlib, no installs) live in `scripts/`. Run them via bash; read only their output.
+
+- `scripts/inventory.py <paths>` — emits one JSON census of everything countable: spacing/radius/type/line-height/z-index frequencies, breakpoints, custom properties, !important, ID selectors, nesting depth, color formats and OKLch ΔE clusters, shadows parsed into angle/blur/spread/color, border combos, durations and easings, cursor rules, hover/focus coverage, logical-vs-physical mix, nesting syntax mix, text-wrap, tabular-numeral candidates, same-block contrast pairs, modern color functions. ΔE thresholds live in this script and nowhere else.
+- `scripts/snap.py <census.json> <baseline.json>` — emits the Phase 4 change table with an `auto`/`flag` bucket per Charter rule 3.
+
+If the scripts can't run in the current environment, say so and fall back to a manual census by reading and searching the files — degraded but honest. Same checks, same reporting rules.
 
 ---
 
 ## Phase 1 — Inventory (Read-Only)
 
-### Scan
+Run `scripts/inventory.py` on the scope. Interpret the JSON: from the frequency tables, identify the developer's **intended system** (the values they reach for) and the **drift** (values appearing once or twice, likely accidents). If custom properties already define spacing/radius/type scales, note it — Phase 2 will validate against the existing tokens instead of reverse-engineering.
 
-Read all CSS/SCSS files in scope. Use `Grep` to extract and count:
+Present the inventory as a narrative: what's the shape of this codebase, where do its conventions hold, where do they break? Note format drift the census exposes: mixed color syntaxes (hex beside `oklch()`/`color-mix()`), physical beside logical properties, native beside preprocessor nesting.
 
-- Every unique `margin`, `padding`, `gap` value → build a frequency table of spacing values
-- Every unique `border-radius` value → frequency table
-- Every unique `font-size` value → frequency table
-- Every unique `line-height` value → note which are unitless vs px-based
-- Every unique `z-index` value
-- Every `@media` query → list breakpoint values
-- Every CSS custom property (`--*`) → defined where, used where
-- Every `!important` declaration → count and location
-- Every ID selector (`#name`) in stylesheets → count
-- Maximum selector nesting depth
-- Color formats in use (hex, rgb, rgba, hsl)
-
-From the frequency tables, identify the developer's **intended system** — the values they reach for most. Then identify the **drift** — values that appear only once or twice and are likely accidents.
-
-**If CSS custom properties already define a spacing, radius, or type scale:** note this immediately. It means the developer is already working at a higher floor. Phase 2 will validate against the existing token set rather than reverse-engineering a grid from raw values.
-
-### Report
-
-Present the inventory as a narrative. What's the shape of this codebase? What conventions did the developer choose? Where do those conventions hold, and where do they break?
-
-End with Health at a Glance:
+End with Health at a Glance — grouped rows, one marker each (✓ | ⚠ | ✗, or — for absent-and-fine). Group sub-checks into single rows ("Shadow system", not three shadow rows); never one row per sub-check:
 
 ```
-Spacing consistency     ✓ | ⚠ | ✗
-Radius consistency      ✓ | ⚠ | ✗
-Type scale              ✓ | ⚠ | ✗
-Line-height approach    ✓ | ⚠ | ✗
-Color format            ✓ | ⚠ | ✗
-Custom properties       ✓ | ⚠ | ✗ | — (none, and that's ok)
-Breakpoints             ✓ | ⚠ | ✗
-Mobile responsive       ✓ | ⚠ | ✗
-Specificity debt        ✓ | ⚠ | ✗
-!important count        ✓ | ⚠ | ✗
-Selector depth          ✓ | ⚠ | ✗
-Focus states            ✓ | ⚠ | ✗
-prefers-reduced-motion  ✓ | ⚠ | ✗
+Spacing            Radius             Type scale         Line-height
+Color system       Shadow system      Divider language   Motion
+Layers (z-index)   Custom properties  Structure          Affordances
 ```
 
-Pick ONE marker per row based on what you found.
-
-### Fix
-
-None. Phase 1 is read-only. But state: "Based on this inventory, Phase 2 will establish the consistency baseline by identifying your spacing grid as Xpx, your radius set as [X, Y, Z], and your type scale as [list]. Phase 3 will then remove [N dead selectors / N duplicates / etc] before Phase 4 irons out the [N spacing drifts / N radius drifts / etc]."
-
-This gives the user a preview of the work ahead.
-
----
+Fix: none — read-only. Close with a one-paragraph preview: what baseline Phase 2 will derive, what Phase 3 will remove, what Phase 4 will iron.
 
 ## Phase 2 — Foundation (Consistency Baseline)
 
-### Scan
+**Path A — no token system.** Derive from the census:
 
-**Two paths depending on what Phase 1 found:**
+**Spacing — macro and micro tiers.** Spacing falls into two tiers; analyze them separately. *Macro* — gaps between large blocks: section spacing, page margins (larger values on a clean multiplier). *Micro* — padding within components, icon-to-text gaps (smaller values; may follow a smaller base or none — fine-tuning lives here). Separate them by reading markup context. Test each tier against its own grid candidates independently. The macro multiplier must not be diluted by micro values, and micro values must not be forced onto the macro grid — two tiers is correct and intentional, not a broken grid. Present both tiers, then ask: keep two tiers, or unify? The answer becomes the spacing baseline from Phase 4 onward.
 
-**Path A — No token system:** Using the frequency tables from Phase 1, determine:
+**Anomalies (all value types).** Any value appearing once or twice that doesn't fit its category's pattern is an anomaly. Never auto-correct: note the value, where it's used, and its context (optical alignment? component edge case?), then ask the user. Anomalies may be intentional and are respected until the user says otherwise.
 
-Spacing grid: What base unit fits the majority of values? Test common bases (4px, 5px, 6px, 8px, 10px). For each, count how many existing values are exact multiples and how many are off-grid. The base with the highest hit rate is the developer's implicit grid. List the outliers.
+**Radius set** — group radii into a small set (3–5 values). For every parent-child pair with visible radii, check the nested math: `inner = outer − padding`. List violations.
 
-Radius set: Group the radii into a small set (typically 3–5 values). Identify the developer's preferred radii. Then for every parent-child pair where both have visible border-radius, check the nested math: `inner_radius = outer_radius - padding_between_them`. List violations.
+**Type scale** — sort the font sizes; note a consistent ratio if one exists, otherwise identify the natural steps and flag sizes that fall between.
 
-Type scale: Sort the font sizes. Check if they follow a ratio (divide each step by the previous). If the ratio is roughly consistent (e.g., ~1.25 or ~1.33), note it. If not, identify the developer's natural steps and flag sizes that fall between steps.
+**Elevation ladder & light source** — from the shadow census, cluster blur/spread into 2–3 tiers; note bespoke shadows that fit no tier. The dominant offset angle is the light source; disagreement is "lit by two suns" (normalization is appearance-material — Phase 4 flags it, never auto-applies).
 
-**Path B — Token system already exists:** The developer has already done much of this work. Use their token definitions as the baseline. Your job is to check that all values in the stylesheet actually use the tokens, and flag any raw values that should have been a token reference. E.g., if `--space-5: 24px` is defined but a rule uses `22px`, that's a drift — the baseline says 24px.
+**Divider language** — from the border census, identify the dominant width × style × color divider voice. Near-identical variants are drift.
 
-For both paths:
+**Duration rungs & easing set** — derive the developer's own duration rungs from frequency, exactly like the spacing grid; durations between rungs are drift. Never judge durations against external ranges. Note the easing set the same way.
 
-**Line-height:** Categorize every line-height as unitless or px-based. Count each.
+**Line-height / z-index / color format** — unitless vs px counts; z-tier structure or arbitrariness; dominant color format.
 
-**Z-index:** List all unique values. Check if they suggest tiers or are arbitrary.
+**Path B — token system exists.** Use their token definitions as the baseline; flag raw values that should have been token references (`--space-5: 24px` defined but `22px` used = drift). Still apply the macro/micro lens to the spacing tokens.
 
-**Color format:** Count hex vs rgb vs rgba vs hsl occurrences.
-
-### Report
-
-```
-✓  Good       — "Your spacing is mostly on an 8px grid (87% of values). Radii cluster
-                 around 4/8/16/24px. Type scale has a clear mid-range at 14-24px stepping
-                 by 2."
-✗  Missing    — "No consistent approach to line-height — 60% unitless, 40% px-based.
-                 Nested radius math is not applied (5 parent-child pairs violate it)."
-⚠  Warnings   — "12 spacing values are off-grid: 13px (×2), 15px (×1), 22px (×3)...
-                 3 font sizes fall between scale steps: 15px, 17px, 42px."
-```
-
-### Fix
-
-State the proposed consistency baseline explicitly. In interactive mode, ask for confirmation. In autonomous mode, state the baseline and proceed:
-
-```
-Proposed system (proceeding — let me know if you'd adjust anything):
-  Spacing grid: 8px base. Values: 8, 16, 20, 24, 32, 40, 48, 60, 80, 100, ...
-  Radius set: 4, 8, 16, 24px. Nested math: inner = outer - padding.
-  Type scale: 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80, 96, 128px.
-  Line-height: unitless only (1, 1.1, 1.2, 1.3, 1.5).
-  Z-index tiers: -1, 0, 1, 10, 100 (or whatever the codebase uses).
-  Color format: hex (or whichever the developer uses most).
-```
-
----
+Report per the canonical format, then state the proposed baseline explicitly — spacing tiers (with the unify question), radius set + nested math, type scale, line-height policy, z tiers, color format, elevation ladder + light angle, divider spec, duration rungs + easing set. In interactive mode, get confirmation — especially on the macro/micro decision and every anomaly. In autonomous mode, state the baseline and proceed, noting anomalies inline for later review.
 
 ## Phase 3 — Structural Cleanup (Cascade & Dead Weight)
 
-### Scan
+Scan for, with the census plus targeted searches of the markup:
 
-Search for:
+- **Dead code** — selectors with no matching elements; commented-out blocks over 3 lines.
+- **Vendor prefixes** — `-webkit-`/`-moz-`/`-ms-` on properties long unprefixed everywhere.
+- **Logical/physical mix** — `margin-left` beside `margin-inline-start` (the modern successor to the prefix check). Detect drift between syntaxes the developer already mixes; never "you should adopt logical properties."
+- **Nesting-syntax mix** — native CSS nesting beside preprocessor nesting, same framing.
+- **Duplicates** — same property twice in a block; identical selectors that could merge.
+- **Specificity** — IDs used for styling, overqualified selectors, `!important` without a justifying comment.
+- **Shorthand/longhand conflicts** in the same block; **nesting deeper than 3 levels**.
 
-- **Dead code:** Use `Grep` to find selectors, then cross-reference against the markup/component files to identify unused selectors. Flag commented-out blocks (look for `/* ... */` or `//` blocks longer than 3 lines).
-- **Vendor prefixes:** Grep for `-webkit-`, `-moz-`, `-ms-`. Cross-reference each against baseline browser support (flexbox, grid, border-radius, transform, transition are all unprefixed in all modern browsers).
-- **Duplicate declarations:** Within each rule block, check for the same property appearing twice. Across blocks, check for identical selectors that could be merged.
-- **Specificity issues:** Count ID selectors used for styling. Find overqualified selectors (`element.class` patterns). Count `!important` declarations and check if each has a justifying comment.
-- **Shorthand/longhand conflicts:** In each rule block, check if shorthand (`margin`) appears alongside its longhand (`margin-top`).
-- **Nesting depth:** For SCSS, count nesting levels. Flag anything beyond 3.
-
-### Report
-
-```
-✓  Good       — "No !important declarations. Color tokens are used consistently within
-                 the theme scope."
-✗  Missing    — "14 selectors appear to be dead code (no matching elements). 6 vendor
-                 prefixes are outdated."
-⚠  Warnings   — "23 selectors are 4+ levels deep. 3 rule blocks mix shorthand and
-                 longhand margin/padding."
-```
-
-### Fix
-
-```
-I will:
-1. Remove the 14 dead selectors [list them with file:line]
-2. Remove the 6 outdated vendor prefixes [list them]
-3. Merge 4 duplicate selector blocks [list them]
-4. Flag the 23 deep selectors for review (not auto-fixing — flattening these may require markup changes)
-5. Resolve the 3 shorthand/longhand conflicts by [specific approach for each]
-```
-
-After executing, re-run the specificity scan to confirm the landscape improved.
-
----
+Report exceptions with `file:line`. The fix list distinguishes removals (safe to apply) from flattening that needs markup changes (flagged). After executing, re-scan to confirm the landscape improved.
 
 ## Phase 4 — Value Corrections (Ironing)
 
-### Scan
-
-Using the baseline from Phase 2, scan every value in the (now-cleaned) codebase:
-
-- Every spacing value: is it on-grid? If not, what's the nearest grid value?
-- Every border-radius: is it in the radius set? For nested pairs, does the math hold?
-- Every font-size: is it on the type scale?
-- Every line-height: is it unitless? If px-based, what's the unitless equivalent?
-- Every transition: does it specify an explicit property or use `all`? What easing function?
-- Every z-index: does it fit the tier map?
-
-Build a change list: `file:line | current value | proposed value | reason`.
-
-### Report
+Write the confirmed Phase 2 baseline to a JSON file (schema in `references/scoring.md`), re-run `scripts/inventory.py` on the cleaned files, then run `scripts/snap.py census.json baseline.json`. It emits the change table:
 
 ```
-✓  Good       — "312 of 340 spacing values already on the 8px grid. All z-index values
-                 fit the tier map."
-✗  Missing    — "0 — nothing is absent, just drifted."
-⚠  Warnings   — "28 spacing values off-grid [table]. 5 radii off-set [table]. 3 font
-                 sizes between scale steps [table]. 11 line-heights are px-based [table].
-                 4 transitions use 'all' [list]. Easing is inconsistent: ease-in-out (×12),
-                 ease (×3), linear (×1)."
+file:line | property | current | proposed | reason | bucket
 ```
 
-Below the summary, show the full change table so the user can review every proposed edit:
+`bucket` is `auto` or `flag` per Charter rule 3. The table covers spacing/radius/type snaps to their own tiers, unitless line-height conversions, z-tier moves, duration rung snaps, easing unification, color merges (ΔE-bucketed: near-duplicates auto, ambiguous flagged with side-by-side values, distinct untouched), shadow-angle and elevation-ladder flags, and divider consolidation (always flagged).
 
-```
-File              Line   Property        Current    Proposed   Reason
-component.scss    42     padding         13px       12px       snap to 8px grid
-component.scss    87     border-radius   18px       16px       nearest in radius set
-card.scss         15     line-height     22px       1.375      unitless (16px base)
-card.scss         31     transition      all 0.2s   opacity 0.2s  explicit property
-```
+Also check nested radius math against the Phase 2 baseline — that judgment stays with you, not the script. Transitions using `all` get an explicit-property proposal.
 
-### Fix
-
-"I will apply all [N] corrections from the table above. [N] are spacing snaps, [N] are radius fixes, [N] are line-height conversions, [N] are transition fixes."
-
-Execute using `Edit` for each file. After all edits, re-run the scan to confirm zero drift remains. Report the before/after counts.
-
----
+Report: summary counts first (Charter rule 2), full table below. Apply `auto` rows (interactive: after approval; autonomous: immediately). `flag` rows are proposals — show the fix, wait for a decision. After edits, re-run the inventory to confirm drift went to zero for everything applied; report before/after counts.
 
 ## Phase 5 — Layout & Proportion (Visual Systems)
 
-### Scan
+Read markup alongside CSS. Check: section gap vs element gap ratio (related elements tighter than unrelated neighbors); narrative order (copy before media); padding proportional to component size; a uniform breakpoint set across components; `overflow: hidden` as band-aid; overflow protection on long-text containers.
 
-This phase requires reading the markup structure alongside the CSS. For each major section:
+**Affordance grammar** (from the census — numbers and locations only): hover/focus rule coverage per interactive selector, with the uncovered selectors listed; the `cursor` declaration census; the count of distinct link-treatment patterns. If a finding cannot be a number with a location, it does not ship — no "feels inconsistent" language.
 
-- Measure the **section gap** (space between sections) and **element gap** (space between elements within a section). Calculate the ratio.
-- Check **narrative order**: does copy (headings, paragraphs) appear before media (images, video) in the DOM and visual flow?
-- Check **proximity**: are related elements (label + input, icon + text) tighter than unrelated neighbors?
-- Check **proportion**: is internal padding proportional to component size?
-- List all `@media` breakpoint values used. Check if all components use the same set.
-- Search for `overflow: hidden` — is it intentional or a band-aid?
-- Search for text that might overflow: long words, titles without `overflow-wrap` or `text-wrap`.
+**Container-query observation**: if a container-query pattern already partially exists, flag repeated per-component media queries that duplicate it (flag-only, judgment call).
 
-### Report
+Fixes here are mostly flags — proportion and narrative order are judgment calls that need the user's input before anything changes.
 
-```
-✓  Good       — "Section gaps (80px, 100px) are consistently 3-4× element gaps (20px, 24px).
-                 Breakpoints are uniform: 1600, 1400, 1200 across all components."
-✗  Missing    — "No mobile breakpoints (noted as separate project, not flagged as failure).
-                 No overflow-wrap on any text container."
-⚠  Warnings   — "2 sections place media above copy in the visual flow. 1 card has 8px
-                 padding with a large media element — feels cramped. overflow:hidden on
-                 .main-header may clip content at certain viewport widths."
-```
+## Phase 6 — Accessibility & Resilience (Floor Checks)
 
-### Fix
+The only phase where absolute standards apply:
 
-```
-I will:
-1. Add `overflow-wrap: break-word` to [N] text containers [list]
-2. Flag the 2 narrative-order concerns for your review [describe each — these are judgment calls, not auto-fixes]
-3. Flag the cramped card for your review: suggest increasing padding from 8px to 16px
-4. Note: the overflow:hidden on .main-header — check if this clips the nav at any viewport width
-Items 2-4 need your input before I change anything.
-```
+- **Touch targets** — effective tap area (height + padding) below 44×44px on interactive elements.
+- **Focus states** — `outline: none`/`0` without a `:focus-visible` replacement; interactive elements with no focus style at all (cross-check the census coverage list).
+- **prefers-reduced-motion** — transitions/animations exist but no reduced-motion block.
+- **Fluid type** — fixed heading sizes above 32px with no `clamp()` may overflow narrow viewports.
+- **CLS** — images/video without dimensions or `aspect-ratio` in the markup.
+- **Tabular numerals** — table/numeric-column selectors lacking `font-variant-numeric: tabular-nums` (the census lists them).
+- **Contrast pairs** — the census computes WCAG ratios only for `color` + `background-color` declared in the same rule block (cascade-free: the developer's stated intent). Pairs involving alpha, `opacity`, or `filter` are listed as unverifiable, not guessed at. Every Phase 6 report must include the disclosure line: *"Checked N color pairs declared together in source; remaining combinations require rendered output to verify."*
+- **text-wrap** — where absent, suggest `text-wrap: balance` for headings and `text-wrap: pretty` for body text. Suggestion-tier only, never auto-applied.
 
----
-
-## Phase 6 — Accessibility & Resilience
-
-### Scan
-
-- **Touch targets:** For every interactive element (button, a, input, select, textarea), calculate the effective tap area from height + padding. Flag any below 44×44px.
-- **Focus states:** Grep for `outline: none` and `outline: 0`. For each match, check if a `:focus-visible` rule exists on the same selector. Also check if any interactive elements lack focus styles entirely.
-- **prefers-reduced-motion:** Grep for `transition`, `animation`, `@keyframes`. If any exist, grep for `prefers-reduced-motion`. If absent, flag it.
-- **Fluid type:** Check if any heading font-sizes are fixed values above 32px with no `clamp()`. These may overflow on narrow viewports.
-- **CLS:** In the markup, check if `<img>` and `<video>` elements have `width`/`height` attributes or if their containers have `aspect-ratio` set.
-
-### Report
-
-```
-✓  Good       — "Key-button has :focus-visible styles. Touch targets on main nav links
-                 are 44px+."
-✗  Missing    — "No @media (prefers-reduced-motion) block despite 8 transitions and
-                 1 animation. No aspect-ratio or explicit dimensions on 12 images."
-⚠  Warnings   — "3 footer links have effective tap area of 36×20px — below 44×44px minimum.
-                 Heading at 128px has no clamp() — will overflow on viewports below ~400px."
-```
-
-### Fix
-
-```
-I will:
-1. Add a `@media (prefers-reduced-motion: reduce)` block that sets `transition: none` and
-   `animation: none` on all animated elements [list them]
-2. Add `aspect-ratio` to the 12 image containers [list files and lines]
-3. Add `min-height: 44px; min-width: 44px` to the 3 undersized footer links
-4. Suggest `clamp(2rem, 5vw + 1rem, 8rem)` for the 128px heading — confirm the min/max feel right to you
-Item 4 needs your input. Items 1-3 I can apply now.
-```
-
----
+The fix list separates what you can apply now (reduced-motion block, aspect-ratios, tap-area minimums) from what needs input (clamp() ranges, contrast changes — color choices belong to the developer).
 
 ## Phase 7 — Code Quality (Polish)
 
-This phase comes last because formatting code that's about to be deleted (Phase 3) or rewritten (Phase 4) is wasted effort.
+Last, because formatting code that Phase 3 deletes or Phase 4 rewrites is wasted effort.
 
-### Scan
+- **Property order** — outside-in: layout → box model → typography → visual → misc. Count ordered vs disordered blocks.
+- **Naming** — role, not appearance (`.blue-box` → a domain-aware alternative from the vocabulary). Respect the methodology the developer chose; don't impose one.
+- **DRY** — declaration groups (3+ properties) repeated identically in 3+ selectors are extraction candidates.
+- **Comments** — should explain *why*, not restate *what*. Suggest section headers for long unmarked files.
 
-**Property order:** In each rule block, check if properties follow the outside-in convention:
-1. Layout (`display`, `position`, `top/right/bottom/left`, `z-index`)
-2. Box model (`width`, `height`, `margin`, `padding`, `border`, `border-radius`)
-3. Typography (`font-*`, `line-height`, `text-*`, `letter-spacing`, `color`)
-4. Visual (`background`, `box-shadow`, `opacity`, `overflow`, `cursor`)
-5. Misc (`transition`, `animation`, `transform`, `will-change`)
-
-Count how many blocks are correctly ordered vs disordered.
-
-**Naming:** Using the domain vocabulary from Phase 1, check each class name. Does it describe the element's role or its appearance? Flag appearance-based names (`.blue-box`, `.left-sidebar`). Suggest domain-aware alternatives. If the codebase uses BEM, check for violations. If it uses a namespace pattern, check for consistency. Don't impose a methodology the developer didn't choose.
-
-**DRY:** Find declaration groups (3+ properties) that appear identically in 3+ selectors. These are candidates for extraction into a shared class or mixin.
-
-**Comments:** Grep for `//` and `/* */` comments. Check if they explain *why* or just restate *what*.
-
-### Report
-
-```
-✓  Good       — "Namespace pattern (wd-*) is consistent across all work-detail components.
-                 No appearance-based class names."
-✗  Missing    — "No comments anywhere in the stylesheet."
-⚠  Warnings   — "62% of rule blocks have disordered properties. 4 declaration groups
-                 repeat in 3+ selectors [list candidates for extraction]. 2 class names
-                 could better reflect the domain: .media → .case-media, .copy → .case-copy."
-```
-
-### Fix
-
-```
-I will:
-1. Reorder properties in all [N] disordered rule blocks to outside-in convention
-2. Extract 4 repeated declaration groups into shared classes/mixins [show each]
-3. Suggest 2 class name improvements for your review [show before/after — these touch markup
-   too, so you need to confirm]
-Item 3 is a suggestion only — renaming classes requires markup changes. Items 1-2 I can apply now.
-```
+**Optimization suggestions** — collect everything noted-but-not-applied in Phases 1–6 into one list: missing mobile breakpoints, components without responsive styles, section headers, modern-pattern opportunities the codebase already leans toward, the Phase 6 text-wrap suggestions. Present each with context; these are suggestions, not auto-fixes. Reordering and extraction you can apply; class renames touch markup and need confirmation.
 
 ---
 
 ## Non-Negotiable Principles
 
-These hold regardless of phase:
-
-- Spacing values should land on the developer's own grid
-- Nested border-radius = outer radius minus padding
-- Line-height always unitless
-- Section gap >= 2× element gap
-- Touch targets >= 44px
+- Spacing lands on its own tier's grid (macro and micro validated independently)
+- Anomalies (1–2 occurrences, off-pattern) are flagged, never auto-corrected
+- Nested border-radius = outer radius − padding; line-height always unitless
+- Section gap ≥ 2× element gap; touch targets ≥ 44px
+- One light source per stylesheet; shadow normalization is never auto-applied
+- Color merges follow the ΔE buckets; divider consolidation is always flagged
+- Durations are judged only against the developer's own rungs — no external ms values
 - Every `!important` needs a justification comment
-- Class names describe role, not appearance
-- Properties ordered: layout → box model → typography → visual → misc
-- Never mix shorthand and longhand for the same property in the same block
-- Nesting deeper than 3 levels gets flagged
+- Class names describe role, not appearance; properties ordered outside-in
+- Never mix shorthand and longhand for one property in one block; nesting > 3 flagged
+- Every reported finding carries `file:line`; no interpretive findings without numbers
 - Comments explain *why*; code explains *what*
 
----
+## After the Lint Roll
 
-## After the Lint Roll: Where You Stand
+After all phases complete, read `references/scoring.md` and follow it. It defines the −2…+3 score (computed from the original core dimensions only — Charter rule 4), the Blueprint format (tokenizable value scales only), and the `roll-lint.baseline.json` schema.
 
-Once all seven phases are complete, step back and assess the codebase as a whole. This is where you tell the user not just what you fixed, but where they are — and where they could go.
+Then write `roll-lint.baseline.json` to the project root — the machine-readable Blueprint that touch-up mode and the hook recipe (`references/hook-recipe.md`) run against. Full audits write it; touch-up runs never do.
 
-### The Score
-
-Rate the codebase on a scale from **-2 to +3** using only whole-number integers. This isn't a grade — it's a position on a journey. Give one score for before the audit (based on Phase 1 inventory) and one for after (based on what was fixed in Phases 2–7).
-
-```
--2  Survival       Values are arbitrary, nothing is consistent, specificity wars
-                   everywhere, no custom properties, no intentional system at all.
-                   The CSS works, but only by accident.
-
--1  Patched        Some patterns exist but drift constantly. A few variables defined
-                   but not used consistently. Breakpoints are present but ad-hoc.
-                   Someone tried to create order but it didn't hold.
-
- 0  Ground Floor   Everything is consistent within its own logic. Spacing lands on a
-                   grid. Radii follow the nested math. Type sizes fit a scale.
-                   Line-heights are unitless. Selectors are flat. The CSS is clean —
-                   but it's all hard-coded values. No token layer yet.
-                   This is where roll-lint gets you.
-
-+1  Seeded         The repeated values from the cleanup have been extracted into CSS
-                   custom properties. A global token layer exists: spacing, radii,
-                   type scale, colors. Components reference tokens instead of raw
-                   values. The system is explicit and the codebase is self-documenting.
-
-+2  Systematic     Tokens follow a tiered architecture: global primitives → semantic
-                   aliases → component-specific references. Theming is possible (dark
-                   mode, brand variants) by remapping the alias layer. New components
-                   can be built using only existing tokens.
-
-+3  Thriving       The design system is governed: versioned, documented, enforced via
-                   linting. Token changes propagate across platforms. New ad-hoc values
-                   can't leak in without review. The system scales with the team.
-```
-
-**Scoring notes:**
-- A codebase that already has CSS custom properties for spacing, radii, and color before the audit enters at +1, not 0. Score it there.
-- Scores are whole integers only — no halves or decimals. If a codebase is between floors, round down (the higher floor requires all of its criteria to be fully met).
-- The delta is what matters most. Even a +1 improvement (e.g., -1 → 0) represents real ground covered.
-
-### The Blueprint
-
-After scoring, present the seed for the next floor. This is not the token system itself — it's the starting point for one, derived directly from the cleanup work. Show:
-
-**Spacing scale** — The values that survived the ironing. Present them as a simple list with counts:
-
-```
-8px   (used 12×)
-16px  (used 34×)
-20px  (used 28×)
-24px  (used 41×)
-32px  (used 19×)
-40px  (used 15×)
-```
-
-Note: "These are your spacing values. If you wanted to turn them into tokens, this is the set."
-
-**Radius scale** — Same approach. The radii that held up, with the nested math verified.
-
-**Type scale** — The font sizes that form the scale, with their frequency.
-
-**Color palette** — The colors in use, grouped by role (background, text, accent, divider). If theme-scoped variables already exist, note how close they are to a full token layer.
-
-**Z-index map** — The tiers in use, from background to overlay.
-
-**Transition set** — The easing functions and durations that are now consistent.
-
-Present this as a reference card, not a mandate. The developer can take it and build a token system, or they can leave the codebase as-is — clean, consistent, and well-organized — and that's perfectly fine too.
-
-### What This Skill Doesn't Do
-
-Be clear about the boundaries. Roll-lint gets you to ground floor. It does not:
-
-- Build the token architecture (global → alias → component tiers)
-- Set up theming (dark mode, brand variants)
-- Create a component library or design system documentation
-- Enforce tokens via linting rules or CI/CD
-- Handle cross-platform token distribution (Style Dictionary, W3C Design Tokens spec)
-
-These are the next floors. The blueprint gives a correct foundation to build them on.
+Be clear about the boundary: roll-lint gets a codebase to ground floor — clean, consistent, hard-coded values. It does not build token architecture, theming, component libraries, or lint enforcement. Those are the next floors; the Blueprint is a correct foundation for them.
