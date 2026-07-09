@@ -46,7 +46,7 @@ After the ironing, you get a **blueprint**: the spacing scale, radius set, type 
 ### Quick install (Claude Code, via marketplace)
 
 ```
-/plugin marketplace add niharya/claude-skills
+/plugin marketplace add niharya/skills-drawer
 /plugin install roll-lint@skill-shelf
 ```
 

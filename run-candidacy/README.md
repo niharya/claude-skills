@@ -2,21 +2,23 @@
 
 **One job at a time. Tailored resume, application answers, outreach contacts — generated from your own facts, written in your own voice.**
 
-A Claude skill for anyone applying to jobs. Paste a JD, get back a positioning doc, a tailored resume (HTML and optionally PDF), an `application.md` with one section per form field, and a short list of decision-makers worth reaching out to. Every line is checked against a voice scan that blocks em dashes and warns on generic résumé clichés.
+A Claude skill for anyone applying to product, design, design-leadership, or frontend roles. Paste a JD, get back a structured strategic read of the role, a tailored resume (HTML and optionally PDF), an `application.md` with one section per form field (cover letter included), and a short list of decision-makers worth reaching out to. Every generated line is checked against a voice scan that blocks em-dashes, prestige adjectives, and pander phrases.
+
+For the architectural reference — governing principles, tool boundaries, frozen decisions — see [`skills/run-candidacy/ARCHITECTURE.md`](./skills/run-candidacy/ARCHITECTURE.md).
 
 ---
 
-## The Problem It Solves
+## The problem it solves
 
-Most resume tools either generate generic output that sounds like every other resume, or require you to write everything yourself and just format it. Neither helps with the actual hard part: deciding what to emphasize for *this* role, in *your* voice, without drifting into cliché.
+Most résumé tools either generate generic output that sounds like every other résumé, or require you to write everything yourself and just format it. Neither helps with the actual hard part: deciding what to emphasize for *this* role, in *your* voice, without drifting into cliché.
 
 `run-candidacy` separates the work into layers:
 
-1. **Your facts** live in `facts/` — identity, roles, receipts, voice rules, lexicon. Source of truth, written once, refined over time.
-2. **Per-application positioning** lives in `examples/<slug>/positioning.md` — inferred fresh from the JD, decides the headline pattern, what to lead with, what to compress.
-3. **Generated output** lives next to the positioning doc — resume, application answers, contacts. Re-generates on every revision pass.
+1. **Your facts** live under `facts/` — identity (`identity.yaml`), receipts (`receipts.json`, tagged against capability primitives), voice constraints (`voice_rules.yaml`). Source of truth, written once at setup, refined over time.
+2. **Per-application signals** live in `examples/<slug>/signals.yaml` — a structured strategic read produced from the JD, schema-validated, with every field tagged for provenance (extracted vs. inferred vs. synthesized).
+3. **Generated output** lives next to the signals — resume, `application.md`, contacts. Re-generates on every revision pass.
 
-The skill never invents facts. If the JD asks for something your `facts/` don't carry, it asks before fabricating.
+The skill never invents facts. If the JD asks for something your `facts/` don't carry, it asks before fabricating. Prestige adjectives never influence retrieval. Low-signal JDs produce sparse output rather than padded output.
 
 ---
 
@@ -24,26 +26,26 @@ The skill never invents facts. If the JD asks for something your `facts/` don't 
 
 The skill ships with placeholder facts. Before your first real run, populate `facts/` by running two prompts in the AI you talk to most (the one that knows your writing and history).
 
-1. Open [`skills/run-candidacy/prompts/01-facts-extraction.md`](./skills/run-candidacy/prompts/01-facts-extraction.md). Copy everything below the `===` line. Paste it into your home AI. Paste the AI's response back into Claude with `run-candidacy` active — it will write your identity, roles, receipts, logistics, and approved phrasings into `facts/`.
+1. Open [`skills/run-candidacy/prompts/01-facts-extraction.md`](./skills/run-candidacy/prompts/01-facts-extraction.md). Copy everything below the `===` line. Paste it into your home AI. Paste the AI's response back into Claude with `run-candidacy` active — it will write `identity.yaml`, `receipts.json`, and `data.base.json`.
 
-2. Open [`skills/run-candidacy/prompts/02-voice-extraction.md`](./skills/run-candidacy/prompts/02-voice-extraction.md). Same flow — paste, run, paste back. This fills your voice rules, lexicon, and three real voice samples.
+2. Open [`skills/run-candidacy/prompts/02-voice-extraction.md`](./skills/run-candidacy/prompts/02-voice-extraction.md). Same flow — paste, run, paste back. This appends candidate-specific anti-patterns to `voice_rules.yaml` on top of the universal floor that ships with the skill, and writes `voice-samples.md` as a setup-only reference.
 
-3. Answer four short workflow questions in Claude (output folder, PDF default, app-log on/off, spelling system). The skill stores them in `.skill-config.json`.
+3. Answer four short workflow questions in Claude (output folder, PDF default, application-log on/off, spelling system). The skill stores them in `.skill-config.json`.
 
-If your home AI doesn't have writing samples from you, paste 2–4 of them (a Slack post, a blog excerpt, a cover letter, an email) into the chat before running prompt 2. Voice can't be inferred from rules alone.
+If your home AI doesn't have writing samples from you, paste 2–4 of them (a Slack post, a blog excerpt, a cover letter, an email) into the chat before running prompt 2. Voice cannot be inferred from rules alone.
 
 ---
 
 ## Prerequisites
 
 - [Claude](https://claude.ai) with Claude Code or a compatible Claude environment
-- Python 3.9+ for the build script
-- `jinja2` (required), `openpyxl` (optional, for application logging), `weasyprint` (optional, for PDF rendering)
+- Python 3.9+
+- `pyyaml` (required, for voice rules), `jinja2` (required, for the resume template), `openpyxl` (optional, for application logging), `weasyprint` (optional, for PDF rendering)
 
-Install Python deps:
+Install Python dependencies:
 
 ```
-pip install --break-system-packages jinja2 openpyxl weasyprint
+pip install --break-system-packages pyyaml jinja2 openpyxl weasyprint
 ```
 
 WeasyPrint additionally needs system libraries (Pango, Cairo). See its [install docs](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) if PDF rendering fails. HTML output works without it.
@@ -55,7 +57,7 @@ WeasyPrint additionally needs system libraries (Pango, Cairo). See its [install 
 ### Quick install (Claude Code, via marketplace)
 
 ```
-/plugin marketplace add niharya/claude-skills
+/plugin marketplace add niharya/skills-drawer
 /plugin install run-candidacy@skill-shelf
 ```
 
@@ -63,7 +65,7 @@ Then open a new conversation, run the first-run setup above, and paste a JD or s
 
 ### Manual install (fallback)
 
-1. Copy the [`skills/run-candidacy/`](./skills/run-candidacy/) folder (which contains `SKILL.md` plus `prompts/`, `facts/`, `templates/`, `scripts/`, and `examples/`) into your Claude skills directory.
+1. Copy the [`skills/run-candidacy/`](./skills/run-candidacy/) folder (which contains `SKILL.md`, `ARCHITECTURE.md`, plus `prompts/`, `facts/`, `tools/`, `templates/`, `scripts/`, and `examples/`) into your Claude skills directory.
    - On claude.ai: Settings → Skills → add new skill, point at `SKILL.md`
    - On Claude Code (without the marketplace): place at `~/.claude/skills/run-candidacy/` (or your project's skill path)
 2. Open a new conversation. Run setup (above).
@@ -71,7 +73,7 @@ Then open a new conversation, run the first-run setup above, and paste a JD or s
 
 ---
 
-## How to Trigger It
+## How to trigger it
 
 - `/run-candidacy`
 - `run candidacy`
@@ -81,28 +83,32 @@ Then open a new conversation, run the first-run setup above, and paste a JD or s
 
 ---
 
-## What Happens in a Session
+## What happens in a session
 
-### 1. JD ingestion
-The skill detects the JD source. LinkedIn, Glassdoor, Indeed, Wellfound — Chrome required, since these are sign-in walls. Public Ashby / Greenhouse / Lever / Workday postings — fetched from the public API where possible. The cleaned JD lands in `examples/<slug>/jd.txt`.
+The skill runs a five-tool default flow. Each tool has a strict contract documented in [`skills/run-candidacy/tools/`](./skills/run-candidacy/tools/).
 
-### 2. Pre-flight
-Three soft questions before generation: have you used the product, have you seen their public work, do you know the recipient name. Each "no" is a signal that lands softer in the cover letter — the skill adjusts framing accordingly.
+### 1. ingest_jd
+The skill detects the JD source. LinkedIn, Glassdoor, Indeed, Wellfound — uses Chrome (these are sign-in-walled JS apps). Public Ashby / Greenhouse / Lever / Workday postings — fetched from the public API where possible. The cleaned JD lands in `examples/<slug>/jd.txt`, with the application form fields preserved at the bottom when surfaceable.
 
-### 3. Positioning
-The skill writes `positioning.md`: role-type, audience, screening test, strategic frame, headline pattern, register, vocabulary emphasis. This is the per-application decision document — every downstream output is shaped by it.
+### 2. analyze_role
+The intelligence layer. Reads the JD, writes `examples/<slug>/signals.yaml` — a structured strategic read with provenance markers (META / EXTRACTED / INFERRED / SYNTHESIS) and hard caps on every list. Sets `signal_strength` (high / medium / low / noise), which scales every downstream step.
 
-### 4. Resume + application
-`data.json` is generated from `facts/` and shaped by `positioning.md`. The build script renders `resume.html`, runs the voice scan, runs a parse-check on the HTML text content, runs the NDA name check, and surfaces a JD-keyword-presence signal. `application.md` is generated alongside, with one H1 section per form field (cover letter included as one of those sections).
+### 3. generate_resume
+Adapts the baseline `data.base.json` against the signals — re-orders bullets, lightly rephrases up to 6 of them (fewer for lower signal_strength), mirrors operational JD terms truthfully. Renders `resume.html`. The build script runs the voice scan, the parse check, the NDA name check, and a spelling-system check. PDF rendering is opt-in (`--pdf`).
 
-### 5. Outreach
-After v1 of resume + application is ready, the skill auto-fires a people-search: head of design, design director, founders, team leads at the company. Returns 3–5 candidates with names, titles, LinkedIn URLs where surfaceable, and one-line evidence notes. On confirmation, writes `contacts.md` with tailored outreach drafts per contact.
+### 4. write_application
+Produces `examples/<slug>/application.md` with one H1 section per text field the form asks for. The cover-letter section is short, grounded, names 2-3 receipts, addresses gaps honestly when signals flagged any, and closes with your default closing line from `voice_rules.yaml`. Length scales with `signal_strength`.
 
-### 6. Multi-pass revisions
-Multi-pass is first-class. Send revision notes; the skill regenerates `data.json` and `application.md`, overwrites `resume.html` (and `resume.pdf` if rendered), and appends a timestamped entry to `notes.md`.
+### 5. log_applied
+When you confirm the application has been submitted, the skill appends a row to `applications.xlsx` (if logging was enabled in setup). Pure bookkeeping — no auto-analysis, no auto-rebuild.
 
-### 7. On "applied"
-When you confirm the application has been submitted, the skill logs it to `applications.xlsx` (if app-log was enabled in setup) and asks if any phrasings or role-type patterns from this run should be promoted back to `facts/` for future applications.
+### Opt-in tools
+
+Three opt-in tools never auto-fire:
+
+- **fit_note_signals** — when you want to write a personal fit note yourself, this surfaces signal-level fodder (anomalies, tensions, asymmetries, useful receipts, likely reader concerns). It does NOT draft prose.
+- **pressure_test** — paste your own draft prose; the tool flags inflation, vagueness, consultant tone, pander, emotional overreach, strategic over-signaling, and identity drift. It does NOT rewrite.
+- **people_search** — after you've applied, surfaces up to 3 decision-makers you could reach out to, with one-line evidence notes. Does NOT auto-draft outreach messages.
 
 ---
 
@@ -114,7 +120,7 @@ The default template at [`skills/run-candidacy/templates/resume.html`](./skills/
 - **Two pages are fine.** No one-page squeeze. Generous margins, breathable line length, gentle dot bullets.
 - **System fonts only.** Georgia + Helvetica/Arial. No web fonts to bundle, no rendering surprises across machines or PDF engines.
 
-If you want a different look, edit [`skills/run-candidacy/templates/resume.html`](./skills/run-candidacy/templates/resume.html) directly. The Jinja data shape is documented in [`skills/run-candidacy/SKILL.md`](./skills/run-candidacy/SKILL.md).
+If you want a different look, edit [`skills/run-candidacy/templates/resume.html`](./skills/run-candidacy/templates/resume.html) directly. The Jinja data shape is documented in [`skills/run-candidacy/SKILL.md`](./skills/run-candidacy/SKILL.md) and the contract for the underlying signals lives in [`skills/run-candidacy/signals.schema.yaml`](./skills/run-candidacy/signals.schema.yaml).
 
 ---
 
@@ -127,9 +133,27 @@ run-candidacy/
 │   └── plugin.json           plugin manifest (marketplace install)
 └── skills/
     └── run-candidacy/
-        ├── SKILL.md          the instructions Claude follows
+        ├── SKILL.md          the router Claude follows
+        ├── ARCHITECTURE.md   governing principles + frozen decisions
+        ├── signals.schema.yaml   contract for per-application signals.yaml
+        ├── signals.example.yaml  illustrative reference
         ├── prompts/          paste-prompts for first-run setup
         ├── facts/            your single source of truth
+        │   ├── identity.yaml
+        │   ├── receipts.json
+        │   ├── voice_rules.yaml
+        │   ├── voice-samples.md  (setup-only reference)
+        │   ├── atses.md
+        │   └── nda-names.txt
+        ├── tools/            per-tool contracts
+        │   ├── ingest_jd.md
+        │   ├── analyze_role.md
+        │   ├── generate_resume.md
+        │   ├── write_application.md
+        │   ├── fit_note_signals.md
+        │   ├── pressure_test.md
+        │   ├── people_search.md
+        │   └── log_applied.md
         ├── templates/        default resume template
         ├── scripts/          build + voice scan + application log
         └── examples/         one folder per application
@@ -139,7 +163,7 @@ run-candidacy/
 
 ## Privacy
 
-The `facts/` folder (at [`skills/run-candidacy/facts/`](./skills/run-candidacy/facts/)) contains your identity, contact info, work history, and voice samples. It stays on your machine. The skill never uploads it anywhere. If you fork this repo to use the skill, gitignore these three before pushing anything public:
+The `facts/` folder (at [`skills/run-candidacy/facts/`](./skills/run-candidacy/facts/)) contains your identity, contact info, work history, and voice samples. It stays on your machine. The skill never uploads it anywhere. If you fork this repo to use the skill, gitignore these before pushing anything public:
 
 ```
 run-candidacy/skills/run-candidacy/facts/
@@ -151,9 +175,9 @@ run-candidacy/skills/run-candidacy/applications.xlsx
 
 ---
 
-## Tested With
+## Tested with
 
-- Claude Sonnet 4.6 on Claude Code
+- Claude Sonnet 4.6 / Opus 4.x on Claude Code
 - Python 3.11
 - HTML output across browsers; PDF output via WeasyPrint
 

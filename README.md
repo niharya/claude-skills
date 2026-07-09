@@ -23,7 +23,7 @@ These skills are built around real design and frontend work. They've been used i
 This repo is also published as a Claude Code plugin marketplace called **`skill-shelf`**. If you're on Claude Code, you can install any of the skills with two slash commands:
 
 ```
-/plugin marketplace add niharya/claude-skills
+/plugin marketplace add niharya/skills-drawer
 /plugin install lay-ui@skill-shelf
 /plugin install roll-lint@skill-shelf
 /plugin install run-candidacy@skill-shelf

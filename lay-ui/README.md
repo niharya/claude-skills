@@ -36,7 +36,7 @@ At each station, you're only ever thinking about one kind of problem. No context
 ### Quick install (Claude Code, via marketplace)
 
 ```
-/plugin marketplace add niharya/claude-skills
+/plugin marketplace add niharya/skills-drawer
 /plugin install lay-ui@skill-shelf
 ```
 
